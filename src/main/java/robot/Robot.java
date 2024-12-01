@@ -36,6 +36,7 @@ public class Robot extends CommandRobot implements Logged {
 
   // SUBSYSTEMS
   Drive drive = new Drive();
+
   // COMMANDS
 
   /** The robot contains subsystems, OI devices, and commands. */

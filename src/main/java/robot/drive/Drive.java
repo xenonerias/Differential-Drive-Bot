@@ -2,14 +2,10 @@ package robot.drive;
 
 import static edu.wpi.first.units.Units.Seconds;
 
-import java.util.List;
-import java.util.function.DoubleSupplier;
-
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
-
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
@@ -20,73 +16,75 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import java.util.List;
+import java.util.function.DoubleSupplier;
 import monologue.Annotations.Log;
 import robot.Constants;
 import robot.Ports;
 import robot.Robot;
 
-public class Drive extends SubsystemBase {  
+public class Drive extends SubsystemBase {
 
-    private final CANSparkMax leftLeader = new CANSparkMax(Ports.Drive.LEFT_LEADER, MotorType.kBrushless);
-    private final CANSparkMax leftFollower = new CANSparkMax(Ports.Drive.LEFT_FOLLOWER, MotorType.kBrushless);
-    private final CANSparkMax rightLeader = new CANSparkMax(Ports.Drive.RIGHT_LEADER, MotorType.kBrushless);
-    private final CANSparkMax rightFollower = new CANSparkMax(Ports.Drive.RIGHT_FOLLOWER, MotorType.kBrushless);
+  private final CANSparkMax leftLeader =
+      new CANSparkMax(Ports.Drive.LEFT_LEADER, MotorType.kBrushless);
+  private final CANSparkMax leftFollower =
+      new CANSparkMax(Ports.Drive.LEFT_FOLLOWER, MotorType.kBrushless);
+  private final CANSparkMax rightLeader =
+      new CANSparkMax(Ports.Drive.RIGHT_LEADER, MotorType.kBrushless);
+  private final CANSparkMax rightFollower =
+      new CANSparkMax(Ports.Drive.RIGHT_FOLLOWER, MotorType.kBrushless);
 
-    private final RelativeEncoder leftEncoder = leftLeader.getEncoder();
-    private final RelativeEncoder rightEncoder = rightLeader.getEncoder();
+  private final RelativeEncoder leftEncoder = leftLeader.getEncoder();
+  private final RelativeEncoder rightEncoder = rightLeader.getEncoder();
 
-    @Log.NT private final Field2d field2d = new Field2d();
-    
-    private final DifferentialDriveOdometry odometry;
-    private Rotation2d simRotation = new Rotation2d();
-    private final AnalogGyro gyro = new AnalogGyro(Ports.Drive.GYRO_CHANNEL);
-    private double rightVoltage;
-    private double leftVoltage;
-    private final DifferentialDrivetrainSim driveSim;
+  @Log.NT private final Field2d field2d = new Field2d();
 
+  private final DifferentialDriveOdometry odometry;
+  private Rotation2d simRotation = new Rotation2d();
+  private final AnalogGyro gyro = new AnalogGyro(Ports.Drive.GYRO_CHANNEL);
+  private double rightVoltage;
+  private double leftVoltage;
+  private final DifferentialDrivetrainSim driveSim;
 
-    public Drive() {
+  public Drive() {
 
-        leftEncoder.setPositionConversionFactor(DriveConstants.POSITION_FACTOR);{
-            rightEncoder.setPositionConversionFactor(DriveConstants.POSITION_FACTOR);
-        
-            leftEncoder.setVelocityConversionFactor(DriveConstants.VELOCITY_FACTOR);
-            rightEncoder.setVelocityConversionFactor(DriveConstants.VELOCITY_FACTOR); 
-        
-            leftEncoder.setPosition(0);
-            rightEncoder.setPosition(0);
+    leftEncoder.setPositionConversionFactor(DriveConstants.POSITION_FACTOR);
+    {
+      rightEncoder.setPositionConversionFactor(DriveConstants.POSITION_FACTOR);
 
-        for (CANSparkMax spark : List.of(leftLeader, leftFollower, rightLeader, rightFollower)) {
-          spark.restoreFactoryDefaults();
-          spark.setIdleMode(IdleMode.kBrake);
+      leftEncoder.setVelocityConversionFactor(DriveConstants.VELOCITY_FACTOR);
+      rightEncoder.setVelocityConversionFactor(DriveConstants.VELOCITY_FACTOR);
+
+      leftEncoder.setPosition(0);
+      rightEncoder.setPosition(0);
+
+      for (CANSparkMax spark : List.of(leftLeader, leftFollower, rightLeader, rightFollower)) {
+        spark.restoreFactoryDefaults();
+        spark.setIdleMode(IdleMode.kBrake);
       }
-      
+
       rightFollower.follow(rightLeader);
       leftFollower.follow(leftLeader);
-  
+
       leftLeader.setInverted(true);
     }
 
     gyro.reset();
 
-       odometry = new DifferentialDriveOdometry(
-        new Rotation2d(), 
-        0, 
-        0, 
-        new Pose2d());
+    odometry = new DifferentialDriveOdometry(new Rotation2d(), 0, 0, new Pose2d());
 
+    driveSim =
+        new DifferentialDrivetrainSim(
+            DCMotor.getMiniCIM(2),
+            DriveConstants.GEARING,
+            DriveConstants.MOI,
+            DriveConstants.DRIVE_MASS,
+            DriveConstants.WHEEL_RADIUS,
+            DriveConstants.TRACK_WIDTH,
+            DriveConstants.STD_DEVS);
+  }
 
-    driveSim = new DifferentialDrivetrainSim(
-        DCMotor.getMiniCIM(2),  
-        DriveConstants.GEARING,  
-        DriveConstants.MOI,      
-        DriveConstants.DRIVE_MASS, 
-        DriveConstants.WHEEL_RADIUS, 
-        DriveConstants.TRACK_WIDTH, 
-        DriveConstants.STD_DEVS 
-    );
-}
-public void updateOdometry(Rotation2d rotation) {
+  public void updateOdometry(Rotation2d rotation) {
     odometry.update(rotation, leftEncoder.getPosition(), rightEncoder.getPosition());
   }
 
@@ -100,35 +98,36 @@ public void updateOdometry(Rotation2d rotation) {
     return (leftEncoder.getPosition() + rightEncoder.getPosition()) / 2;
   }
 
-  @Override 
+  @Override
   public void periodic() {
     updateOdometry(Robot.isReal() ? gyro.getRotation2d() : simRotation);
 
     if (Robot.isSimulation()) {
-        driveSim.setInputs(leftVoltage, rightVoltage);
-        field2d.setRobotPose(pose());
+      driveSim.setInputs(leftVoltage, rightVoltage);
+      field2d.setRobotPose(pose());
     }
-}
+  }
 
+  @Override
+  public void simulationPeriodic() {
+    driveSim.update(Constants.PERIOD.in(Seconds));
+    leftEncoder.setPosition(driveSim.getLeftPositionMeters());
+    rightEncoder.setPosition(driveSim.getRightPositionMeters());
+    simRotation = driveSim.getHeading();
+  }
 
-@Override
-public void simulationPeriodic() {
-  driveSim.update(Constants.PERIOD.in(Seconds));
-  leftEncoder.setPosition(driveSim.getLeftPositionMeters());
-  rightEncoder.setPosition(driveSim.getRightPositionMeters());
-  simRotation = driveSim.getHeading();
-}
+  public Command drive(DoubleSupplier vLeft, DoubleSupplier vRight) {
+    return new RunCommand(
+        () -> {
+          double leftSpeed = vLeft.getAsDouble();
+          double rightSpeed = vRight.getAsDouble();
+          drive(leftSpeed, rightSpeed);
+        },
+        this);
+  }
 
-public Command drive(DoubleSupplier vLeft, DoubleSupplier vRight) {
-    return new RunCommand(() -> {
-        double leftSpeed = vLeft.getAsDouble();
-        double rightSpeed = vRight.getAsDouble(); 
-        drive(leftSpeed, rightSpeed);
-    }, this);
-}
-private void drive(double vLeft, double vRight) {
+  private void drive(double vLeft, double vRight) {
     leftLeader.set(vLeft);
     rightLeader.set(vRight);
+  }
 }
-}
-

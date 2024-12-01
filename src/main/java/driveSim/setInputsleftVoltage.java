@@ -1,5 +1,3 @@
 package driveSim;
 
-public interface setInputsleftVoltage {
-
-}
+public interface setInputsleftVoltage {}

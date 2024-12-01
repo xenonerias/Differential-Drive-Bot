@@ -1,5 +1,3 @@
 package robot.drive;
 
-public class driveSim {
-
-}
+public class driveSim {}
