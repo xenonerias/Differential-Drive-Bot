@@ -1,4 +1,3 @@
-
 package robot.drive;
 
 import static edu.wpi.first.units.Units.Seconds;
@@ -132,4 +131,3 @@ public class Drive extends SubsystemBase {
     rightLeader.set(vRight);
   }
 }
-
