@@ -6,7 +6,6 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -30,7 +29,7 @@ import robot.drive.DriveConstants.PID;
 
 public class Drive extends SubsystemBase {
 
-    private final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(FF.kS, FF.kV);
+  private final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(FF.kS, FF.kV);
 
   private final CANSparkMax leftLeader =
       new CANSparkMax(Ports.Drive.LEFT_LEADER, MotorType.kBrushless);
@@ -90,10 +89,9 @@ public class Drive extends SubsystemBase {
             DriveConstants.TRACK_WIDTH,
             DriveConstants.STD_DEVS);
   }
-    private final PIDController leftPIDController =
-      new PIDController(PID.kP, PID.kI, PID.kD);
-  private final PIDController rightPIDController =
-      new PIDController(PID.kP, PID.kI, PID.kD);
+
+  private final PIDController leftPIDController = new PIDController(PID.kP, PID.kI, PID.kD);
+  private final PIDController rightPIDController = new PIDController(PID.kP, PID.kI, PID.kD);
 
   public void updateOdometry(Rotation2d rotation) {
     odometry.update(rotation, leftEncoder.getPosition(), rightEncoder.getPosition());
@@ -143,23 +141,20 @@ public class Drive extends SubsystemBase {
   }
 
   public void drive(double leftSpeed, double rightSpeed) {
-	final double realLeftSpeed = leftSpeed * DriveConstants.MAX_SPEED;
-	final double realRightSpeed = rightSpeed * DriveConstants.MAX_SPEED;
-	
+    final double realLeftSpeed = leftSpeed * DriveConstants.MAX_SPEED;
+    final double realRightSpeed = rightSpeed * DriveConstants.MAX_SPEED;
+
     final double leftFeedforward = feedforward.calculate(realLeftSpeed);
     final double rightFeedforward = feedforward.calculate(realRightSpeed);
 
-    final double leftPID = 
-      leftPIDController.calculate(leftEncoder.getVelocity(), realLeftSpeed);
-    final double rightPID = 
-      rightPIDController.calculate(rightEncoder.getVelocity(), realRightSpeed);
+    final double leftPID = leftPIDController.calculate(leftEncoder.getVelocity(), realLeftSpeed);
+    final double rightPID =
+        rightPIDController.calculate(rightEncoder.getVelocity(), realRightSpeed);
 
-      double leftVoltage = leftPID + leftFeedforward;
-      double rightVoltage = rightPID + rightFeedforward;
+    double leftVoltage = leftPID + leftFeedforward;
+    double rightVoltage = rightPID + rightFeedforward;
 
-      leftLeader.setVoltage(leftVoltage);
-      rightLeader.setVoltage(rightVoltage);
+    leftLeader.setVoltage(leftVoltage);
+    rightLeader.setVoltage(rightVoltage);
   }
-
 }
-    
